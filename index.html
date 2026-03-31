@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniShare | Kampüs Paylaşım</title>
+    <link rel="stylesheet" href="stil.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="yan-menu" class="yan-menu"> 
+        <button id="menu-tetikleyici" class="menu-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <div class="menu-icerik">
+            <div class="menu-oge">
+                <i class="fas fa-user-circle"></i>
+                <span class="metin">Profil</span>
+            </div>
+            <div class="menu-oge">
+                <i class="fas fa-plus-square"></i>
+                <span class="metin">İlan Paylaş</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="ilan-modal" class="modal">
+        <div class="modal-icerik">
+            <span class="kapat-btn">&times;</span>
+            <h2>Yeni İlan Oluştur</h2>
+            <form id="ilan-formu">
+                <input type="text" id="ilan-baslik" placeholder="İlan Başlığı (Örn: Matematik Kitabı)" required>
+                <select id="ilan-kategori">
+                    <option value="Eşya">Eşya</option>
+                    <option value="Kitap">Kitap</option>
+                    <option value="Ders Notu">Ders Notu</option>
+                </select>
+                <input type="number" id="ilan-fiyat" placeholder="Fiyat (₺)" required>
+                <textarea id="ilan-aciklama" placeholder="İlan detayı nedir?" rows="4" required></textarea>
+                <button type="submit" class="paylas-btn">İlanı Paylaş</button>
+            </form>
+        </div>
+    </div>
+
+    <main id="ana-icerik">
+        <header>
+            <h1>Uni<span>Share</span></h1>
+            <p>Kampüs içi yardımlaşma platformu</p>
+        </header>
+
+        <div id="ilanlar-kutusu" class="ilanlar-izgara">
+            </div>
+    </main>
+
+    <script src="betik.js"></script>
+</body>
+</html>
