@@ -11,6 +11,7 @@ const detayKapatBtn = document.querySelector('.detay-kapat-btn');
 const detayYorumInput = document.getElementById('detay-yorum-input');
 const detayYorumGonderBtn = document.getElementById('detay-yorum-gonder-btn');
 const filtreButonlari = document.querySelectorAll('.filtre-btn');
+const durumDegistirBtn = document.getElementById('durum-degistir-btn');
 
 // 2. Veriler
 let ilanlar = [
@@ -22,6 +23,7 @@ let ilanlar = [
         aciklama: "Casio fx-991ES Plus, tertemiz.", 
         begeni: 12, 
         begenildi: false,
+        aktif: true,
         yorumlar: [
             { 
                 id: 101, 
@@ -41,6 +43,7 @@ let ilanlar = [
         aciklama: "Vize ve final için tam kapsamlı.", 
         begeni: 45, 
         begenildi: false,
+        aktif: true,
         yorumlar: [
             { id: 102, yazar: "Öğrenci 2", metin: "Harika notlar!", begeniSayisi: 5, begenildi: false, yanitlar: [] }
         ] 
@@ -49,27 +52,27 @@ let ilanlar = [
 
 let seciliIlan = null;
 let yanitlanacakYorumIndex = null; 
-let suAnkiKategori = "Hepsi"; // Varsayılan filtre
+let suAnkiKategori = "Hepsi";
 
 // 3. Temel Navigasyon
 menuTetikleyici.onclick = () => yanMenu.classList.toggle('acik');
-ilanBtn.onclick = () => { ilanModal.style.display = "block"; document.body.style.overflow = "hidden"; };
-kapatBtn.onclick = () => { ilanModal.style.display = "none"; document.body.style.overflow = "auto"; };
+ilanBtn.onclick = () => { ilanModal.style.display = "block"; document.body.style.overflow = "hidden"; document.body.classList.add('modal-acik');};
+kapatBtn.onclick = () => { ilanModal.style.display = "none"; document.body.style.overflow = "auto"; document.body.classList.add('modal-acik'); };
 detayKapatBtn.onclick = () => { detayModal.style.display = "none"; document.body.style.overflow = "auto"; };
 
 window.onclick = (e) => { 
     if (e.target.classList.contains('modal')) { 
         ilanModal.style.display = "none"; 
         detayModal.style.display = "none"; 
-        document.body.style.overflow = "auto"; 
+        document.body.style.overflow = "auto";
+        document.body.classList.remove('modal-acik'); 
     }
 };
 
-// 4. İlanları Listele (Filtreleme Destekli)
+// 4. İlanları Listele
 function ilanlariGoster() {
     ilanlarKutusu.innerHTML = "";
     
-    // Filtreleme işlemi
     const gosterilecekIlanlar = suAnkiKategori === "Hepsi" 
         ? ilanlar 
         : ilanlar.filter(ilan => ilan.kategori === suAnkiKategori);
@@ -83,8 +86,12 @@ function ilanlariGoster() {
                 detaylariAc(ilan);
             }
         });
+
+        const durumSinifi = ilan.aktif ? 'durum-yayinda' : 'durum-kapali';
+        const durumMetni = ilan.aktif ? 'Yayında' : 'Yayında Değil';
         
         kart.innerHTML = `
+            <div class="durum-etiket ${durumSinifi}">${durumMetni}</div>
             <span class="kategori-etiket">${ilan.kategori}</span>
             <h3>${ilan.baslik}</h3>
             <div class="fiyat">${ilan.fiyat} ₺</div>
@@ -109,14 +116,11 @@ function ilanlariGoster() {
     });
 }
 
-// 5. Filtre Butonları Dinleyici
+// 5. Filtre Butonları
 filtreButonlari.forEach(btn => {
     btn.addEventListener('click', () => {
-        // Aktif butonu değiştir
         document.querySelector('.filtre-btn.aktif').classList.remove('aktif');
         btn.classList.add('aktif');
-        
-        // Kategoriye göre listele
         suAnkiKategori = btn.getAttribute('data-kategori');
         ilanlariGoster();
     });
@@ -131,6 +135,12 @@ function detaylariAc(ilan) {
     document.getElementById('detay-fiyat').innerText = ilan.fiyat + " ₺";
     document.getElementById('detay-begeni-sayisi').innerText = ilan.begeni;
     document.getElementById('detay-yorum-sayisi').innerText = ilan.yorumlar.length;
+
+    const etiket = document.getElementById('detay-durum-etiket');
+    etiket.innerText = ilan.aktif ? "Bu ilan şu an yayında" : "Bu ilan yayından kaldırıldı";
+    etiket.className = `durum-etiket ${ilan.aktif ? 'durum-yayinda' : 'durum-kapali'}`;
+    etiket.style.position = "static";
+    etiket.style.marginTop = "15px";
 
     const modalKalp = document.getElementById('modal-kalp');
     modalKalp.className = ilan.begenildi ? 'fas fa-heart begenildi' : 'far fa-heart';
@@ -176,7 +186,16 @@ function detaylariAc(ilan) {
     document.body.style.overflow = "hidden";
 }
 
-// 7. Beğeni İşlemleri
+// 7. Durum Değiştirme
+durumDegistirBtn.onclick = () => {
+    if (seciliIlan) {
+        seciliIlan.aktif = !seciliIlan.aktif;
+        detaylariAc(seciliIlan); 
+        ilanlariGoster(); 
+    }
+};
+
+// 8. Beğeni İşlemleri
 function begeniIslemi(ilan, kalpIkonu, sayiElementi) {
     if (!ilan) return;
     if (ilan.begenildi) {
@@ -214,7 +233,7 @@ function yorumBegeniYap(index) {
     detaylariAc(seciliIlan);
 }
 
-// 8. Yanıtla ve Yorum Gönder
+// 9. Yanıtla ve Yorum Gönder
 function yanitla(index, kullaniciAdi) {
     yanitlanacakYorumIndex = index; 
     detayYorumInput.value = `@${kullaniciAdi} `;
@@ -250,7 +269,7 @@ function yorumGonder() {
 detayYorumInput.onkeypress = (e) => { if (e.key === 'Enter') yorumGonder(); };
 detayYorumGonderBtn.onclick = yorumGonder;
 
-// 9. İlan Paylaş
+// 10. İlan Paylaş (Düzeltildi)
 ilanFormu.onsubmit = (e) => {
     e.preventDefault();
     const yeni = {
@@ -261,7 +280,8 @@ ilanFormu.onsubmit = (e) => {
         aciklama: document.getElementById('ilan-aciklama').value,
         begeni: 0, 
         yorumlar: [], 
-        begenildi: false
+        begenildi: false,
+        aktif: true 
     };
     ilanlar.unshift(yeni);
     ilanlariGoster();
