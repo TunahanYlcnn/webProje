@@ -10,6 +10,7 @@ const detayModal = document.getElementById('ilan-detay-modal');
 const detayKapatBtn = document.querySelector('.detay-kapat-btn');
 const detayYorumInput = document.getElementById('detay-yorum-input');
 const detayYorumGonderBtn = document.getElementById('detay-yorum-gonder-btn');
+const filtreButonlari = document.querySelectorAll('.filtre-btn');
 
 // 2. Veriler
 let ilanlar = [
@@ -47,7 +48,8 @@ let ilanlar = [
 ];
 
 let seciliIlan = null;
-let yanitlanacakYorumIndex = null; // Hangi ana yoruma yanıt verildiğini tutar
+let yanitlanacakYorumIndex = null; 
+let suAnkiKategori = "Hepsi"; // Varsayılan filtre
 
 // 3. Temel Navigasyon
 menuTetikleyici.onclick = () => yanMenu.classList.toggle('acik');
@@ -63,10 +65,16 @@ window.onclick = (e) => {
     }
 };
 
-// 4. İlanları Listele
+// 4. İlanları Listele (Filtreleme Destekli)
 function ilanlariGoster() {
     ilanlarKutusu.innerHTML = "";
-    ilanlar.forEach(ilan => {
+    
+    // Filtreleme işlemi
+    const gosterilecekIlanlar = suAnkiKategori === "Hepsi" 
+        ? ilanlar 
+        : ilanlar.filter(ilan => ilan.kategori === suAnkiKategori);
+
+    gosterilecekIlanlar.forEach(ilan => {
         const kart = document.createElement('div');
         kart.className = 'kart';
         
@@ -101,7 +109,20 @@ function ilanlariGoster() {
     });
 }
 
-// 5. Detay Modalını Aç (Thread Destekli)
+// 5. Filtre Butonları Dinleyici
+filtreButonlari.forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Aktif butonu değiştir
+        document.querySelector('.filtre-btn.aktif').classList.remove('aktif');
+        btn.classList.add('aktif');
+        
+        // Kategoriye göre listele
+        suAnkiKategori = btn.getAttribute('data-kategori');
+        ilanlariGoster();
+    });
+});
+
+// 6. Detay Modalını Aç
 function detaylariAc(ilan) {
     seciliIlan = ilan;
     document.getElementById('detay-baslik').innerText = ilan.baslik;
@@ -121,7 +142,6 @@ function detaylariAc(ilan) {
         const yDiv = document.createElement('div');
         yDiv.className = 'yorum-kapsayici';
         
-        // Yanıtları (Alt yorumları) oluştur
         let yanitlarHtml = "";
         if (y.yanitlar && y.yanitlar.length > 0) {
             yanitlarHtml = `<div class="alt-yorumlar-kutusu">`;
@@ -156,7 +176,7 @@ function detaylariAc(ilan) {
     document.body.style.overflow = "hidden";
 }
 
-// 6. Beğeni İşlemleri
+// 7. Beğeni İşlemleri
 function begeniIslemi(ilan, kalpIkonu, sayiElementi) {
     if (!ilan) return;
     if (ilan.begenildi) {
@@ -194,7 +214,7 @@ function yorumBegeniYap(index) {
     detaylariAc(seciliIlan);
 }
 
-// 7. Yanıtla ve Yorum Gönder (Thread Mantığı)
+// 8. Yanıtla ve Yorum Gönder
 function yanitla(index, kullaniciAdi) {
     yanitlanacakYorumIndex = index; 
     detayYorumInput.value = `@${kullaniciAdi} `;
@@ -205,15 +225,13 @@ function yorumGonder() {
     const metin = detayYorumInput.value.trim();
     if (metin === "" || !seciliIlan) return;
 
-    // Eğer birine yanıt veriliyorsa ve input'ta hala @ etiketi varsa
     if (yanitlanacakYorumIndex !== null && metin.includes("@")) {
         seciliIlan.yorumlar[yanitlanacakYorumIndex].yanitlar.push({
             yazar: "Sen",
             metin: metin
         });
-        yanitlanacakYorumIndex = null; // Yanıt işlemini sıfırla
+        yanitlanacakYorumIndex = null; 
     } else {
-        // Normal ana yorum
         seciliIlan.yorumlar.push({
             id: Date.now(),
             yazar: "Sen",
@@ -232,7 +250,7 @@ function yorumGonder() {
 detayYorumInput.onkeypress = (e) => { if (e.key === 'Enter') yorumGonder(); };
 detayYorumGonderBtn.onclick = yorumGonder;
 
-// 8. İlan Paylaş
+// 9. İlan Paylaş
 ilanFormu.onsubmit = (e) => {
     e.preventDefault();
     const yeni = {

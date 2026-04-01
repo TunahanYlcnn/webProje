@@ -75,11 +75,41 @@ body {
 
 header h1 span { color: #3498db; }
 
+/* Kategori Butonları Stili */
+.kategori-filtre-kapsayici {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.filtre-btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 20px;
+    background-color: white;
+    color: #555;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.filtre-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.filtre-btn.aktif {
+    background-color: #3498db;
+    color: white;
+}
+
 .ilanlar-izgara { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
     gap: 25px; 
-    margin-top: 30px; 
+    margin-top: 20px; 
 }
 
 .kart { 
@@ -132,7 +162,6 @@ header h1 span { color: #3498db; }
     backdrop-filter: blur(5px); 
 }
 
-/* Normal İlan Verme Modalı - DİKEY DÜZEN */
 .modal-icerik { 
     background: white; 
     margin: 5% auto; 
@@ -142,7 +171,7 @@ header h1 span { color: #3498db; }
     max-width: 450px; 
     position: relative; 
     display: flex !important; 
-    flex-direction: column !important; /* Üst üste diz */
+    flex-direction: column !important; 
     gap: 15px; 
     max-height: 90vh; 
     overflow-y: auto; 
@@ -185,7 +214,7 @@ header h1 span { color: #3498db; }
     width: 90%;
     height: 600px; 
     padding: 0 !important;
-    flex-direction: row !important; /* YAN YANA DİZ */
+    flex-direction: row !important; 
     overflow: hidden;
     margin: 5vh auto;
 }
@@ -244,7 +273,6 @@ header h1 span { color: #3498db; }
 
 .yorum-begeni.aktif { color: #ed4956 !important; }
 
-/* İç İçe Yorum (Thread) Yapısı */
 .alt-yorumlar-kutusu {
     margin-left: 30px; 
     margin-top: 10px;
