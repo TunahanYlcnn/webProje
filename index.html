@@ -40,32 +40,28 @@
     <div id="ilan-detay-modal" class="modal">
         <div class="modal-icerik detay-modali">
             <span class="detay-kapat-btn">&times;</span>
-            
             <div class="detay-sol">
                 <div class="detay-bilgi-kapsayici">
                     <span class="kategori-etiket" id="detay-kategori">Kategori</span>
                     <h2 id="detay-baslik">İlan Başlığı</h2>
-                    <p id="detay-aciklama">İlan açıklaması buraya gelecek.</p>
+                    <p id="detay-aciklama">İlan açıklaması.</p>
                     <div class="fiyat" id="detay-fiyat">0 ₺</div>
                 </div>
             </div>
-
             <div class="detay-sag">
-                <div class="detay-yorumlar-listesi" id="detay-yorumlar-listesi">
-                    </div>
-
+                <div class="detay-yorumlar-listesi" id="detay-yorumlar-listesi"></div>
                 <div class="detay-alt-kisim">
                     <div class="detay-etkilesim-ozet">
-                        <span><i class="fas fa-heart"></i> <span id="detay-begeni-sayisi">0</span> Beğeni</span>
+                        <span class="etkilesim-butonlar">
+                            <i class="far fa-heart" id="modal-kalp" onclick="begeniYap(event, this)"></i> 
+                            <span id="detay-begeni-sayisi">0</span> Beğeni
+                        </span>
                         <span><i class="fas fa-comment"></i> <span id="detay-yorum-sayisi">0</span> Yorum</span>
                     </div>
-
                     <div class="detay-yorum-yazma-alani">
                         <div class="yorum-input-grubu">
                             <input type="text" id="detay-yorum-input" placeholder="Yorum yaz ve Enter'a bas..." autocomplete="off">
-                            <button id="detay-yorum-gonder-btn" class="yorum-gonder-btn">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
+                            <button id="detay-yorum-gonder-btn" class="yorum-gonder-btn"><i class="fas fa-paper-plane"></i></button>
                         </div>
                     </div>
                 </div>
