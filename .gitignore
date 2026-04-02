@@ -1,0 +1,16 @@
+# Python Çalışma Dosyaları (Bunlar her çalıştığında otomatik oluşur, gitmesin)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Docker ve Çevre Değişkenleri (Şifreleriniz burada olabilir, gizli kalmalı)
+.env
+.dockerignore
+
+# İşletim Sistemi Gereksizleri (Windows'un oluşturduğu gereksiz dosyalar)
+Thumbs.db
+desktop.ini
+
+# IDE/Editör Ayarları (VS Code kullanıyorsan kendi ayarların gitmesin)
+.vscode/

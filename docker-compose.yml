@@ -1,0 +1,16 @@
+services:
+  # 1. Backend Servisi (FastAPI)
+  backend-api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app # Sen kodda değişiklik yaptıkça Docker anında günceller
+
+  # 2. Frontend Servisi (Nginx)
+  frontend-web:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html # HTML dosyalarını buraya bağladık
