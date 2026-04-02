@@ -1,16 +1,33 @@
 services:
-  # 1. Backend Servisi (FastAPI)
   backend-api:
     build: ./backend
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app # Sen kodda değişiklik yaptıkça Docker anında günceller
+      - ./backend:/app
+    depends_on:
+      - db # Veritabanı hazır olmadan backend açılmasın
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/unishare
 
-  # 2. Frontend Servisi (Nginx)
   frontend-web:
     image: nginx:alpine
     ports:
       - "80:80"
     volumes:
-      - ./frontend:/usr/share/nginx/html # HTML dosyalarını buraya bağladık
+      - ./frontend:/usr/share/nginx/html
+
+  # YENİ: PostgreSQL Veritabanı
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=unishare
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,21 +1,22 @@
-// index.js - UniShare Giriş ve Katman Yönetimi
+// index.js - UniShare Giriş, Kayıt ve Katman Yönetimi
 
 /**
- * 1. Katman Değiştirme Fonksiyonu
- * Sayfa yenilenmeden Giriş, Kayıt ve Şifremi Unuttum ekranları arasında geçiş yapar.
+ * 1. KATMAN DEĞİŞTİRME FONKSİYONU
+ * Bu fonksiyon tanımlanmadığı için hata alıyordun. 
+ * Sayfa yenilenmeden ekranlar arası geçişi sağlar.
  */
 function katmanDegistir(katmanId) {
-    // Tüm form katmanlarını bul ve 'aktif' sınıfını kaldır (Hepsini gizle)
+    // Tüm form katmanlarını gizle
     const katmanlar = document.querySelectorAll('.form-katmani');
     katmanlar.forEach(k => k.classList.remove('aktif'));
 
-    // Kullanıcının tıkladığı ilgili katmanı bul ve 'aktif' yaparak göster
+    // Seçilen katmanı göster
     const secilenKatman = document.getElementById(katmanId);
     if (secilenKatman) {
         secilenKatman.classList.add('aktif');
     }
 
-    // Alt metni (açıklama kısmını) şık bir şekilde güncelle
+    // Alt metni (açıklama) güncelle
     const altMetin = document.getElementById('alt-metin');
     if (altMetin) {
         if (katmanId === 'katman-kayit') {
@@ -29,68 +30,87 @@ function katmanDegistir(katmanId) {
 }
 
 /**
- * 2. Backend Bağlantı Testi Fonksiyonu (YENİ)
- * Bu fonksiyon, frontend ve backend'in Docker üzerinde birbiriyle 
- * konuşup konuşmadığını kontrol eder.
+ * 2. KAYIT FORMU KONTROLÜ
  */
-async function backendSelamla() {
-    try {
-        // FastAPI backend'imize (8000 portu) bir istek gönderiyoruz
-        const cevap = await fetch('http://localhost:8000/giris-kontrol');
-        const veri = await cevap.json();
+const kayitFormu = document.getElementById('kayit-formu');
+if (kayitFormu) {
+    kayitFormu.onsubmit = async (e) => {
+        e.preventDefault();
         
-        // Backend'den gelen mesajı konsola yazdıralım (Test amaçlı)
-        console.log("Backend Yanıtı:", veri.mesaj);
-        return true;
-    } catch (hata) {
-        console.error("Backend bağlantı hatası:", hata);
-        return false;
-    }
+        // Inputlardan verileri güvenli bir şekilde alıyoruz
+        const epostaInput = kayitFormu.querySelector('input[type="email"]');
+        const kullaniciInput = kayitFormu.querySelector('input[placeholder="Kullanıcı Adı Seç"]');
+        const sifreInput = kayitFormu.querySelector('input[placeholder="Şifre Oluştur"]');
+
+        const eposta = epostaInput.value;
+        const kullanici_adi = kullaniciInput.value;
+        const sifre = sifreInput.value;
+
+        try {
+            const cevap = await fetch('http://localhost:8000/kayit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    eposta: eposta, 
+                    kullanici_adi: kullanici_adi, 
+                    sifre: sifre 
+                })
+            });
+
+            const sonuc = await cevap.json();
+            
+            if (cevap.ok) {
+                alert(sonuc.mesaj || "Kayıt başarıyla tamamlandı!");
+                katmanDegistir('katman-giris'); // Başarılıysa giriş ekranına dön
+            } else {
+                // Backend'den gelen (kullanıcı adı zaten var vb.) hatayı göster
+                alert("Hata: " + (sonuc.detail || "Kayıt yapılamadı."));
+            }
+        } catch (hata) {
+            console.error("Hata detayı:", hata);
+            alert("Sunucuya bağlanılamadı! Docker konteynerlerini kontrol et.");
+        }
+    };
 }
 
 /**
- * 3. Giriş Formu Kontrolü ve Backend Entegrasyonu
+ * 3. GİRİŞ FORMU KONTROLÜ
  */
 const girisFormu = document.getElementById('giris-formu');
 if (girisFormu) {
     girisFormu.onsubmit = async (e) => {
-        e.preventDefault(); // Sayfanın yenilenmesini engelle
+        e.preventDefault();
         
-        const kullanici = document.getElementById('giris-kullanici').value;
+        const kullanici_adi = document.getElementById('giris-kullanici').value;
         const sifre = document.getElementById('giris-sifre').value;
 
-        // ÖNCE: Backend çalışıyor mu diye bir selam verelim
-        const baglantiDurumu = await backendSelamla();
-        
-        if (!baglantiDurumu) {
-            alert("Dikkat: Backend (Mutfak) şu an kapalı! Docker'ı kontrol et.");
-            return; // Backend kapalıysa devam etme
-        }
+        try {
+            const cevap = await fetch('http://localhost:8000/giris', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    kullanici_adi: kullanici_adi, 
+                    sifre: sifre 
+                })
+            });
 
-        // ŞİMDİLİK: Mevcut admin kontrolünü koruyoruz
-        if (kullanici === "admin" && sifre === "1234") {
-            alert("Backend bağlantısı başarılı ve giriş izni verildi!");
-            window.location.href = "anaSayfa.html";
-        } else {
-            alert("Hatalı bilgiler! (İpucu: admin / 1234)");
+            const sonuc = await cevap.json();
+            
+            if (cevap.ok) {
+                alert("Hoş geldin " + kullanici_adi);
+                window.location.href = "anaSayfa.html"; // Ana sayfaya yönlendir
+            } else {
+                alert("Hata: " + (sonuc.detail || "Giriş bilgileri hatalı."));
+            }
+        } catch (hata) {
+            console.error("Hata detayı:", hata);
+            alert("Bağlantı hatası! Backend sunucusu (port 8000) çalışmıyor olabilir.");
         }
     };
 }
 
 /**
- * 4. Kayıt Formu Kontrolü
- */
-const kayitFormu = document.getElementById('kayit-formu');
-if (kayitFormu) {
-    kayitFormu.onsubmit = (e) => {
-        e.preventDefault();
-        alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
-        katmanDegistir('katman-giris');
-    };
-}
-
-/**
- * 5. Şifre Sıfırlama Formu Kontrolü
+ * 4. ŞİFRE SIFIRLAMA (Simülasyon)
  */
 const sifreFormu = document.getElementById('sifre-formu');
 if (sifreFormu) {
