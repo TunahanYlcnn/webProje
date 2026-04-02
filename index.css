@@ -1,0 +1,88 @@
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+body {
+    background: linear-gradient(135deg, #f0f2f5 0%, #c3cfe2 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.giris-kart {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    width: 380px;
+    text-align: center;
+}
+
+.giris-baslik h1 { font-size: 2.2rem; color: #2c3e50; margin-bottom: 5px; }
+.giris-baslik h1 span { color: #3498db; }
+.giris-baslik p { color: #7f8c8d; font-size: 0.85rem; margin-bottom: 25px; }
+
+/* KATMAN KONTROLÜ */
+.form-katmani {
+    display: none; /* Varsayılan olarak her şeyi gizle */
+    animation: faderIn 0.4s ease; /* Yumuşak açılış efekti */
+}
+
+.form-katmani.aktif {
+    display: block; /* Sadece 'aktif' sınıfı olanı göster */
+}
+
+@keyframes faderIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* FORM ELEMANLARI */
+.giris-form { display: flex; flex-direction: column; gap: 15px; }
+
+.input-grubu { position: relative; display: flex; align-items: center; }
+.input-grubu i { position: absolute; left: 15px; color: #bdc3c7; }
+.input-grubu input {
+    width: 100%;
+    padding: 12px 12px 12px 45px;
+    border: 2px solid #f1f3f5;
+    border-radius: 10px;
+    outline: none;
+    background: #f8f9fa;
+}
+
+.ana-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.ana-btn:hover { background-color: #2980b9; }
+
+.form-linkler { margin-top: 5px; }
+.form-linkler a { color: #7f8c8d; text-decoration: none; font-size: 0.8rem; }
+
+.alt-alan {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.alt-alan span { display: block; color: #7f8c8d; font-size: 0.85rem; margin-bottom: 10px; }
+
+.ikincil-btn {
+    background: none;
+    border: 2px solid #3498db;
+    color: #3498db;
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.ikincil-btn:hover { background: #3498db; color: white; }

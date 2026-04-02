@@ -3,92 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniShare | Kampüs Paylaşım</title>
-    <link rel="stylesheet" href="stil.css">
+    <title>UniShare | Giriş & Kayıt</title>
+    <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-    <div id="yan-menu" class="yan-menu"> 
-        <button id="menu-tetikleyici" class="menu-btn">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="menu-icerik">
-            <div class="menu-oge"><i class="fas fa-user-circle"></i><span class="metin">Profil</span></div>
-            <div class="menu-oge"><i class="fas fa-plus-square"></i><span class="metin">İlan Paylaş</span></div>
-        </div>
-    </div>
+    <div class="giris-kapsayici">
+        <div class="giris-kart">
+            <header class="giris-baslik">
+                <h1>Uni<span>Share</span></h1>
+                <p id="alt-metin">Kampüs paylaşımlarına hızlıca ulaş.</p>
+            </header>
 
-    <div id="ilan-modal" class="modal">
-        <div class="modal-icerik">
-            <span class="kapat-btn">&times;</span>
-            <h2>Yeni İlan Oluştur</h2>
-            <form id="ilan-formu">
-                <input type="text" id="ilan-baslik" placeholder="İlan Başlığı" required>
-                <select id="ilan-kategori">
-                    <option value="Eşya">Eşya</option>
-                    <option value="Kitap">Kitap</option>
-                    <option value="Ders Notu">Ders Notu</option>
-                </select>
-                <input type="number" id="ilan-fiyat" placeholder="Fiyat (₺)" required>
-                <textarea id="ilan-aciklama" placeholder="İlan detayı nedir?" rows="4" required></textarea>
-                <button type="submit" class="paylas-btn">İlanı Paylaş</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="ilan-detay-modal" class="modal">
-        <div class="modal-icerik detay-modali">
-            <span class="detay-kapat-btn">&times;</span>
-            <div class="detay-sol">
-                <div class="detay-ust-kontrol">
-                    <button id="durum-degistir-btn" class="durum-kontrol-btn">Durumu Değiştir</button>
-                </div>
-                <div class="detay-bilgi-kapsayici">
-                    <span class="kategori-etiket" id="detay-kategori">Kategori</span>
-                    <h2 id="detay-baslik">İlan Başlığı</h2>
-                    <p id="detay-aciklama">İlan açıklaması.</p>
-                    <div class="fiyat" id="detay-fiyat">0 ₺</div>
-                    <div id="detay-durum-etiket" class="durum-etiket"></div>
+            <div id="katman-giris" class="form-katmani aktif">
+                <form id="giris-formu" class="giris-form">
+                    <div class="input-grubu">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="giris-kullanici" placeholder="Kullanıcı Adı" required>
+                    </div>
+                    <div class="input-grubu">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="giris-sifre" placeholder="Şifre" required>
+                    </div>
+                    <button type="submit" class="ana-btn">Giriş Yap</button>
+                    <div class="form-linkler">
+                        <a href="#" onclick="katmanDegistir('katman-sifre')">Şifremi Unuttum?</a>
+                    </div>
+                </form>
+                <div class="alt-alan">
+                    <span>Hesabın yok mu?</span>
+                    <button class="ikincil-btn" onclick="katmanDegistir('katman-kayit')">Kayıt Ol</button>
                 </div>
             </div>
-            <div class="detay-sag">
-                <div class="detay-yorumlar-listesi" id="detay-yorumlar-listesi"></div>
-                <div class="detay-alt-kisim">
-                    <div class="detay-etkilesim-ozet">
-                        <span class="etkilesim-butonlar">
-                            <i class="far fa-heart" id="modal-kalp" onclick="begeniYap(event, this)"></i> 
-                            <span id="detay-begeni-sayisi">0</span> Beğeni
-                        </span>
-                        <span><i class="fas fa-comment"></i> <span id="detay-yorum-sayisi">0</span> Yorum</span>
+
+            <div id="katman-kayit" class="form-katmani">
+                <form id="kayit-formu" class="giris-form">
+                    <div class="input-grubu">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" placeholder="Üniversite E-postası" required>
                     </div>
-                    <div class="detay-yorum-yazma-alani">
-                        <div class="yorum-input-grubu">
-                            <input type="text" id="detay-yorum-input" placeholder="Yorum yaz ve Enter'a bas..." autocomplete="off">
-                            <button id="detay-yorum-gonder-btn" class="yorum-gonder-btn"><i class="fas fa-paper-plane"></i></button>
-                        </div>
+                    <div class="input-grubu">
+                        <i class="fas fa-user-plus"></i>
+                        <input type="text" placeholder="Kullanıcı Adı Seç" required>
                     </div>
+                    <div class="input-grubu">
+                        <i class="fas fa-key"></i>
+                        <input type="password" placeholder="Şifre Oluştur" required>
+                    </div>
+                    <button type="submit" class="ana-btn">Hesap Oluştur</button>
+                </form>
+                <div class="alt-alan">
+                    <span>Zaten üye misin?</span>
+                    <button class="ikincil-btn" onclick="katmanDegistir('katman-giris')">Giriş'e Dön</button>
                 </div>
             </div>
+
+            <div id="katman-sifre" class="form-katmani">
+                <form id="sifre-formu" class="giris-form">
+                    <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">
+                        E-posta adresini gir, sana bir kod gönderelim.
+                    </p>
+                    <div class="input-grubu">
+                        <i class="fas fa-paper-plane"></i>
+                        <input type="email" placeholder="E-posta Adresini Gir" required>
+                    </div>
+                    <button type="submit" class="ana-btn">Kod Gönder</button>
+                </form>
+                <div class="alt-alan">
+                    <button class="ikincil-btn" onclick="katmanDegistir('katman-giris')">Geri Dön</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <main id="ana-icerik">
-        <header>
-            <h1>Uni<span>Share</span></h1>
-            <p>Kampüs içi yardımlaşma platformu</p>
-        </header>
-
-        <div class="kategori-filtre-kapsayici">
-            <button class="filtre-btn aktif" data-kategori="Hepsi">Hepsi</button>
-            <button class="filtre-btn" data-kategori="Eşya">Eşya</button>
-            <button class="filtre-btn" data-kategori="Kitap">Kitap</button>
-            <button class="filtre-btn" data-kategori="Ders Notu">Ders Notu</button>
-        </div>
-
-        <div id="ilanlar-kutusu" class="ilanlar-izgara"></div>
-    </main>
-
-    <script src="betik.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>
