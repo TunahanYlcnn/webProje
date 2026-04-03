@@ -36,7 +36,7 @@ async function ilanlarimiGetir() {
     const liste = document.getElementById('profil-ilanlar-listesi');
     liste.innerHTML = "<p>Yükleniyor...</p>";
     try {
-        const cevap = await fetch('http://localhost:8000/profil/ilanlar/' + aktifKullanici);
+        const cevap = await fetch('http://127.0.0.1:8000/profil/ilanlar/' + aktifKullanici);
         const veriler = await cevap.json();
         if (veriler.length === 0) { liste.innerHTML = '<p style="text-align:center;">Henüz hiç ilan paylaşmadınız.</p>'; return; }
         liste.innerHTML = "";
@@ -60,14 +60,14 @@ async function ilanlarimiGetir() {
 async function ilanSil(ilanId) {
     if (!confirm("Sistem-Uyarisi: İlan ve bağlı her şey silinecek. Onaylıyor musun?")) return;
     try {
-        const cevap = await fetch('http://localhost:8000/ilan-sil/' + ilanId, { method: 'DELETE' });
+        const cevap = await fetch('http://127.0.0.1:8000/ilan-sil/' + ilanId, { method: 'DELETE' });
         if (cevap.ok) { document.getElementById('ilan-' + ilanId).remove(); alert("Sistem-Mesaji: İlan silindi."); }
     } catch (hata) {}
 }
 
 async function durumDegistir(ilanId) {
     try {
-        const cevap = await fetch('http://localhost:8000/ilan-durum/' + ilanId, { method: 'PUT' });
+        const cevap = await fetch('http://127.0.0.1:8000/ilan-durum/' + ilanId, { method: 'PUT' });
         if (cevap.ok) ilanlarimiGetir(); 
     } catch (hata) {}
 }
@@ -76,7 +76,7 @@ async function begendiklerimiGetir() {
     const liste = document.getElementById('profil-begendiklerim-listesi');
     liste.innerHTML = "<p>Yükleniyor...</p>";
     try {
-        const cevap = await fetch('http://localhost:8000/profil/begendiklerim/' + aktifKullanici);
+        const cevap = await fetch('http://127.0.0.1:8000/profil/begendiklerim/' + aktifKullanici);
         const veriler = await cevap.json();
         if (veriler.length === 0) { liste.innerHTML = '<p style="text-align:center;">Henüz bir ilan beğenmediniz.</p>'; return; }
         liste.innerHTML = "";
@@ -95,7 +95,7 @@ async function begendiklerimiGetir() {
 
 async function begeniKaldir(ilanId) {
     try {
-        const cevap = await fetch(`http://localhost:8000/begeni-kaldir/${ilanId}/${aktifKullanici}`, { method: 'DELETE' });
+        const cevap = await fetch(`http://127.0.0.1:8000/begeni-kaldir/${ilanId}/${aktifKullanici}`, { method: 'DELETE' });
         if (cevap.ok) document.getElementById('begeni-' + ilanId).remove();
     } catch (hata) {}
 }
@@ -105,7 +105,7 @@ async function kaydedilenleriGetir() {
     const liste = document.getElementById('profil-kaydedilenler-listesi');
     liste.innerHTML = "<p>Yükleniyor...</p>";
     try {
-        const cevap = await fetch('http://localhost:8000/profil/kaydedilenler/' + aktifKullanici);
+        const cevap = await fetch('http://127.0.0.1:8000/profil/kaydedilenler/' + aktifKullanici);
         const veriler = await cevap.json();
         if (veriler.length === 0) { liste.innerHTML = '<p style="text-align:center;">Henüz bir ilan kaydetmediniz.</p>'; return; }
         liste.innerHTML = "";
@@ -124,7 +124,7 @@ async function kaydedilenleriGetir() {
 
 async function kaydetKaldir(ilanId) {
     try {
-        const cevap = await fetch(`http://localhost:8000/kaydet-kaldir/${ilanId}/${aktifKullanici}`, { method: 'DELETE' });
+        const cevap = await fetch(`http://127.0.0.1:8000/kaydet-kaldir/${ilanId}/${aktifKullanici}`, { method: 'DELETE' });
         if (cevap.ok) document.getElementById('kaydedilen-' + ilanId).remove();
     } catch (hata) {}
 }
@@ -133,7 +133,7 @@ async function yorumlarimiGetir() {
     const liste = document.getElementById('profil-yorumlar-listesi');
     liste.innerHTML = "<p>Yükleniyor...</p>";
     try {
-        const cevap = await fetch('http://localhost:8000/profil/yorumlar/' + aktifKullanici);
+        const cevap = await fetch('http://127.0.0.1:8000/profil/yorumlar/' + aktifKullanici);
         const veriler = await cevap.json();
         if (veriler.length === 0) { liste.innerHTML = '<p style="text-align:center;">Henüz yorum yapmadınız.</p>'; return; }
         liste.innerHTML = "";
@@ -151,7 +151,7 @@ async function kullaniciAdiGuncelle() {
     const yeniAd = document.getElementById('yeni-kullanici-adi').value;
     if (yeniAd.length < 3) return alert("Sistem-Uyarisi: Kullanıcı adı çok kısa!");
     try {
-        const cevap = await fetch('http://localhost:8000/hesap-isim-guncelle', {
+        const cevap = await fetch('http://127.0.0.1:8000/hesap-isim-guncelle', {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ eski_kullanici_adi: aktifKullanici, yeni_kullanici_adi: yeniAd })
         });
@@ -165,7 +165,7 @@ async function sifreGuncelle() {
     const yeni = document.getElementById('yeni-sifre').value;
     if(!mevcut || !yeni) return;
     try {
-        const cevap = await fetch('http://localhost:8000/hesap-sifre-guncelle', {
+        const cevap = await fetch('http://127.0.0.1:8000/hesap-sifre-guncelle', {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ kullanici_adi: aktifKullanici, eski_sifre: mevcut, yeni_sifre: yeni })
         });
@@ -176,7 +176,7 @@ async function sifreGuncelle() {
 async function hesapSil() {
     if (confirm("Sistem-Uyarisi: Hesabı silmeyi onaylıyor musun?")) {
         try {
-            const cevap = await fetch('http://localhost:8000/hesap-sil/' + aktifKullanici, { method: 'DELETE' });
+            const cevap = await fetch('http://127.0.0.1:8000/hesap-sil/' + aktifKullanici, { method: 'DELETE' });
             if (cevap.ok) { localStorage.removeItem('unishare_kullanici'); window.location.href = "index.html"; }
         } catch (hata) {}
     }
@@ -202,7 +202,7 @@ window.onclick = (e) => { if (e.target === detayModal) { detayModal.style.displa
 
 async function ilaniGetirVeAc(ilanId) {
     try {
-        const cevap = await fetch(`http://localhost:8000/ilan-detay/${ilanId}?kullanici_adi=${aktifKullanici}`);
+        const cevap = await fetch(`http://127.0.0.1:8000/ilan-detay/${ilanId}?kullanici_adi=${aktifKullanici}`);
         if(cevap.ok) { const ilan = await cevap.json(); detaylariAc(ilan); }
     } catch (hata) {}
 }
@@ -280,7 +280,7 @@ if(modalDurumDegistirBtn) {
     modalDurumDegistirBtn.onclick = async () => {
         if (seciliIlan && seciliIlan.yazar === aktifKullanici) {
             try {
-                const cevap = await fetch('http://localhost:8000/ilan-durum/' + seciliIlan.id, { method: 'PUT' });
+                const cevap = await fetch('http://127.0.0.1:8000/ilan-durum/' + seciliIlan.id, { method: 'PUT' });
                 if(cevap.ok) {
                     ilaniGetirVeAc(seciliIlan.id); 
                     if(document.getElementById('katman-ilanlarim').classList.contains('aktif')) ilanlarimiGetir();
@@ -293,7 +293,7 @@ if(modalDurumDegistirBtn) {
 async function begeniYap(e) {
     if(e) e.stopPropagation();
     try {
-        const cevap = await fetch('http://localhost:8000/begeni-yap', {
+        const cevap = await fetch('http://127.0.0.1:8000/begeni-yap', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ilan_id: seciliIlan.id, kullanici_adi: aktifKullanici })
         });
@@ -308,7 +308,7 @@ async function begeniYap(e) {
 async function kaydetYap(e) {
     if(e) e.stopPropagation();
     try {
-        const cevap = await fetch('http://localhost:8000/kaydet-yap', {
+        const cevap = await fetch('http://127.0.0.1:8000/kaydet-yap', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ilan_id: seciliIlan.id, kullanici_adi: aktifKullanici })
         });
@@ -321,7 +321,7 @@ async function kaydetYap(e) {
 
 async function yorumBegeniYap(yorumId) {
     try {
-        const cevap = await fetch('http://localhost:8000/yorum-begeni-yap', {
+        const cevap = await fetch('http://127.0.0.1:8000/yorum-begeni-yap', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ yorum_id: yorumId, kullanici_adi: aktifKullanici })
         });
@@ -352,7 +352,7 @@ async function yorumGonder() {
     }
 
     try {
-        const cevap = await fetch('http://localhost:8000/yorum-yap', {
+        const cevap = await fetch('http://127.0.0.1:8000/yorum-yap', {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(gonderilecekVeri)

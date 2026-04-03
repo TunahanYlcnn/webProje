@@ -73,7 +73,6 @@ cur.execute('''
         UNIQUE(yorum_id, kullanici_adi)
     );
     
-    -- YENİ EKLENDİ: Kaydedilen İlanlar Tablosu
     CREATE TABLE IF NOT EXISTS kaydedilenler (
         id SERIAL PRIMARY KEY,
         ilan_id INTEGER REFERENCES ilanlar(id) ON DELETE CASCADE,
@@ -236,7 +235,7 @@ async def tum_ilanlari_getir(kullanici_adi: str = ""):
         begeni_sayisi = cur.fetchone()[0]
         
         begenildi = False
-        kaydedildi = False # YENİ
+        kaydedildi = False
         
         if kullanici_adi:
             cur.execute("SELECT 1 FROM begeniler WHERE ilan_id = %s AND kullanici_adi = %s", (ilan_id, kullanici_adi))
@@ -258,7 +257,7 @@ async def tum_ilanlari_getir(kullanici_adi: str = ""):
             "aciklama": i[5],
             "begeni": begeni_sayisi,
             "begenildi": begenildi,
-            "kaydedildi": kaydedildi, # YENİ
+            "kaydedildi": kaydedildi,
             "aktif": True,
             "yorumlar": yorumlar_liste
         })
@@ -284,7 +283,7 @@ async def ilan_detay_getir(ilan_id: int, kullanici_adi: str = ""):
     begeni_sayisi = cur.fetchone()[0]
     
     begenildi = False
-    kaydedildi = False # YENİ
+    kaydedildi = False
     
     if kullanici_adi:
         cur.execute("SELECT 1 FROM begeniler WHERE ilan_id = %s AND kullanici_adi = %s", (ilan_id, kullanici_adi))
@@ -307,7 +306,7 @@ async def ilan_detay_getir(ilan_id: int, kullanici_adi: str = ""):
         "aktif": i[6] == 'yayinda',
         "begeni": begeni_sayisi,
         "begenildi": begenildi,
-        "kaydedildi": kaydedildi, # YENİ
+        "kaydedildi": kaydedildi,
         "yorumlar": yorumlar_liste
     }
     cur.close()
@@ -328,7 +327,6 @@ async def begeni_islem(veri: BegeniIslem):
     conn.close()
     return {"mesaj": "Sistem-Bilgi: İşlem başarılı"}
 
-# YENİ EKLENDİ: İlan Kaydetme İşlemi
 @app.post("/kaydet-yap")
 async def kaydet_islem(veri: BegeniIslem):
     conn = get_db_connection()
@@ -431,7 +429,6 @@ async def begeni_kaldir(ilan_id: int, kullanici_adi: str):
     conn.close()
     return {"mesaj": "Sistem-Mesaji: Beğeni kaldırıldı."}
 
-# YENİ EKLENDİ: Profil Kaydedilenleri Çekme
 @app.get("/profil/kaydedilenler/{kullanici_adi}")
 async def profil_kaydedilenler(kullanici_adi: str):
     conn = get_db_connection()
@@ -447,7 +444,6 @@ async def profil_kaydedilenler(kullanici_adi: str):
     conn.close()
     return [{"id": i[0], "baslik": i[1], "aciklama": i[2]} for i in ilanlar]
 
-# YENİ EKLENDİ: Profil Kaydedilenlerden Çıkarma
 @app.delete("/kaydet-kaldir/{ilan_id}/{kullanici_adi}")
 async def kaydet_kaldir(ilan_id: int, kullanici_adi: str):
     conn = get_db_connection()

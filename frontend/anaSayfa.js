@@ -21,7 +21,7 @@ const aktifKullanici = localStorage.getItem('unishare_kullanici');
 
 async function ilanlariVeritabanindanGetir() {
     try {
-        const url = aktifKullanici ? `http://localhost:8000/ilanlar?kullanici_adi=${aktifKullanici}` : `http://localhost:8000/ilanlar`;
+        const url = aktifKullanici ? `http://127.0.0.1:8000/ilanlar?kullanici_adi=${aktifKullanici}` : `http://127.0.0.1:8000/ilanlar`;
         const cevap = await fetch(url);
         if (cevap.ok) {
             ilanlar = await cevap.json();
@@ -34,7 +34,7 @@ async function ilanlariVeritabanindanGetir() {
 
 async function ilaniGetirVeAc(ilanId) {
     try {
-        const cevap = await fetch(`http://localhost:8000/ilan-detay/${ilanId}?kullanici_adi=${aktifKullanici || ''}`);
+        const cevap = await fetch(`http://127.0.0.1:8000/ilan-detay/${ilanId}?kullanici_adi=${aktifKullanici || ''}`);
         if(cevap.ok) {
             const ilan = await cevap.json();
             detaylariAc(ilan);
@@ -210,7 +210,7 @@ function detaylariAc(ilan) {
 durumDegistirBtn.onclick = async () => {
     if (seciliIlan && seciliIlan.yazar === aktifKullanici) {
         try {
-            const cevap = await fetch('http://localhost:8000/ilan-durum/' + seciliIlan.id, { method: 'PUT' });
+            const cevap = await fetch('http://127.0.0.1:8000/ilan-durum/' + seciliIlan.id, { method: 'PUT' });
             if(cevap.ok) {
                 alert("Sistem-Mesaji: İlan durumu güncellendi.");
                 ilanlariVeritabanindanGetir(); 
@@ -224,7 +224,7 @@ durumDegistirBtn.onclick = async () => {
 async function begeniIstegiGonder(ilanId) {
     if(!aktifKullanici) return alert("Sistem-Uyarisi: Beğenmek için giriş yapmalısınız.");
     try {
-        const cevap = await fetch('http://localhost:8000/begeni-yap', {
+        const cevap = await fetch('http://127.0.0.1:8000/begeni-yap', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ilan_id: ilanId, kullanici_adi: aktifKullanici })
@@ -244,7 +244,7 @@ function begeniYap(e) {
 async function kaydetIstegiGonder(ilanId) {
     if(!aktifKullanici) return alert("Sistem-Uyarisi: Kaydetmek için giriş yapmalısınız.");
     try {
-        const cevap = await fetch('http://localhost:8000/kaydet-yap', {
+        const cevap = await fetch('http://127.0.0.1:8000/kaydet-yap', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ilan_id: ilanId, kullanici_adi: aktifKullanici })
@@ -264,7 +264,7 @@ function kaydetYap(e) {
 async function yorumBegeniYap(yorumId) {
     if(!aktifKullanici) return alert("Sistem-Uyarisi: Beğenmek için giriş yapmalısınız.");
     try {
-        const cevap = await fetch('http://localhost:8000/yorum-begeni-yap', {
+        const cevap = await fetch('http://127.0.0.1:8000/yorum-begeni-yap', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ yorum_id: yorumId, kullanici_adi: aktifKullanici })
@@ -298,7 +298,7 @@ async function yorumGonder() {
     }
 
     try {
-        const cevap = await fetch('http://localhost:8000/yorum-yap', {
+        const cevap = await fetch('http://127.0.0.1:8000/yorum-yap', {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(gonderilecekVeri)
@@ -323,7 +323,7 @@ ilanFormu.onsubmit = async (e) => {
     if(!aktifKullanici) return alert("Sistem-Hatası: İlan paylaşabilmek için önce giriş yapmalısınız.");
 
     try {
-        const cevap = await fetch('http://localhost:8000/ilan-paylas', {
+        const cevap = await fetch('http://127.0.0.1:8000/ilan-paylas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

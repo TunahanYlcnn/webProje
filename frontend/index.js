@@ -95,11 +95,9 @@ if (girisFormu) {
             const sonuc = await cevap.json();
             
             if (cevap.ok) {
-                // --- KRİTİK EKLEME BURADA ---
                 // Profil sayfasının kullanıcıyı tanıması için ismi hafızaya alıyoruz
                 localStorage.setItem('unishare_kullanici', kullanici_adi);
-                // ----------------------------
-
+                
                 alert("Hoş geldin " + kullanici_adi);
                 window.location.href = "anaSayfa.html"; // Ana sayfaya yönlendir
             } else {
