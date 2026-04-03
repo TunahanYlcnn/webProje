@@ -14,9 +14,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Veritabanı Bağlantısı
 def get_db_connection():
-    retries = 5  # 5 kere deneyeceğiz
+    retries = 5 
     while retries > 0:
         try:
             conn = psycopg2.connect(
@@ -29,12 +28,10 @@ def get_db_connection():
         except psycopg2.OperationalError:
             retries -= 1
             print(f"Sistem-Bilgi: Veritabanı henüz hazır değil, bekleniyor... (Kalan deneme: {retries})")
-            time.sleep(2) # 2 saniye bekle ve tekrar dene
+            time.sleep(2) 
     
-    # 5 deneme sonunda hala bağlanamazsa hata fırlat
     raise Exception("Sistem-Hatası: Veritabanına bağlanılamadı!")
 
-# Veritabanı Tablolarını Oluştur (Uygulama başlarken bir kez çalışır)
 conn = get_db_connection()
 cur = conn.cursor()
 cur.execute('''
@@ -47,7 +44,7 @@ cur.execute('''
     
     CREATE TABLE IF NOT EXISTS ilanlar (
         id SERIAL PRIMARY KEY,
-        kullanici_adi TEXT REFERENCES kullanicilar(kullanici_adi) ON DELETE CASCADE,
+        kullanici_adi TEXT REFERENCES kullanicilar(kullanici_adi) ON DELETE CASCADE ON UPDATE CASCADE,
         baslik TEXT NOT NULL,
         kategori TEXT NOT NULL,
         fiyat NUMERIC NOT NULL,
@@ -58,22 +55,42 @@ cur.execute('''
     CREATE TABLE IF NOT EXISTS begeniler (
         id SERIAL PRIMARY KEY,
         ilan_id INTEGER REFERENCES ilanlar(id) ON DELETE CASCADE,
-        kullanici_adi TEXT REFERENCES kullanicilar(kullanici_adi) ON DELETE CASCADE,
+        kullanici_adi TEXT REFERENCES kullanicilar(kullanici_adi) ON DELETE CASCADE ON UPDATE CASCADE,
         UNIQUE(ilan_id, kullanici_adi)
     );
 
     CREATE TABLE IF NOT EXISTS yorumlar (
         id SERIAL PRIMARY KEY,
         ilan_id INTEGER REFERENCES ilanlar(id) ON DELETE CASCADE,
-        kullanici_adi TEXT REFERENCES kullanicilar(kullanici_adi) ON DELETE CASCADE,
+        kullanici_adi TEXT REFERENCES kullanicilar(kullanici_adi) ON DELETE CASCADE ON UPDATE CASCADE,
         metin TEXT NOT NULL
     );
+    
+    CREATE TABLE IF NOT EXISTS yorum_begeniler (
+        id SERIAL PRIMARY KEY,
+        yorum_id INTEGER REFERENCES yorumlar(id) ON DELETE CASCADE,
+        kullanici_adi TEXT REFERENCES kullanicilar(kullanici_adi) ON DELETE CASCADE ON UPDATE CASCADE,
+        UNIQUE(yorum_id, kullanici_adi)
+    );
+    
+    -- YENİ EKLENDİ: Kaydedilen İlanlar Tablosu
+    CREATE TABLE IF NOT EXISTS kaydedilenler (
+        id SERIAL PRIMARY KEY,
+        ilan_id INTEGER REFERENCES ilanlar(id) ON DELETE CASCADE,
+        kullanici_adi TEXT REFERENCES kullanicilar(kullanici_adi) ON DELETE CASCADE ON UPDATE CASCADE,
+        UNIQUE(ilan_id, kullanici_adi)
+    );
 ''')
+
+cur.execute('''
+    ALTER TABLE yorumlar 
+    ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES yorumlar(id) ON DELETE CASCADE DEFAULT NULL;
+''')
+
 conn.commit()
 cur.close()
 conn.close()
 
-# Veri Modelleri
 class KullaniciKayit(BaseModel):
     eposta: str
     kullanici_adi: str
@@ -107,6 +124,11 @@ class YorumKayit(BaseModel):
     ilan_id: int
     kullanici_adi: str
     metin: str
+    parent_id: int = None
+
+class YorumBegeniIslem(BaseModel):
+    yorum_id: int
+    kullanici_adi: str
 
 # ==========================================
 # GİRİŞ VE KAYIT İŞLEMLERİ
@@ -144,6 +166,40 @@ async def giris_yap(kullanici: KullaniciGiris):
     else:
         raise HTTPException(status_code=401, detail="Hatalı kullanıcı adı veya şifre!")
 
+def yorumlari_getir(ilan_id: int, kullanici_adi: str, cur):
+    cur.execute('''
+        SELECT y.id, y.kullanici_adi, y.metin, y.parent_id,
+               (SELECT COUNT(*) FROM yorum_begeniler yb WHERE yb.yorum_id = y.id) as begeni_sayisi,
+               (SELECT 1 FROM yorum_begeniler yb WHERE yb.yorum_id = y.id AND yb.kullanici_adi = %s) as begenildi
+        FROM yorumlar y
+        WHERE y.ilan_id = %s
+        ORDER BY y.id ASC
+    ''', (kullanici_adi, ilan_id))
+    
+    yorumlar_db = cur.fetchall()
+    yorumlar_sozluk = {}
+    ana_yorumlar = []
+
+    for y in yorumlar_db:
+        yorumlar_sozluk[y[0]] = {
+            "id": y[0],
+            "yazar": y[1],
+            "metin": y[2],
+            "parent_id": y[3],
+            "begeniSayisi": y[4],
+            "begenildi": bool(y[5]),
+            "yanitlar": []
+        }
+
+    for y_id, y_obj in yorumlar_sozluk.items():
+        if y_obj["parent_id"] is None:
+            ana_yorumlar.append(y_obj)
+        else:
+            if y_obj["parent_id"] in yorumlar_sozluk:
+                yorumlar_sozluk[y_obj["parent_id"]]["yanitlar"].append(y_obj)
+
+    return ana_yorumlar
+
 # ==========================================
 # ANA SAYFA VE GENEL İLAN İŞLEMLERİ
 # ==========================================
@@ -176,19 +232,22 @@ async def tum_ilanlari_getir(kullanici_adi: str = ""):
     sonuc = []
     for i in ilanlar_db:
         ilan_id = i[0]
-        
         cur.execute("SELECT COUNT(*) FROM begeniler WHERE ilan_id = %s", (ilan_id,))
         begeni_sayisi = cur.fetchone()[0]
         
         begenildi = False
+        kaydedildi = False # YENİ
+        
         if kullanici_adi:
             cur.execute("SELECT 1 FROM begeniler WHERE ilan_id = %s AND kullanici_adi = %s", (ilan_id, kullanici_adi))
             if cur.fetchone():
                 begenildi = True
                 
-        cur.execute("SELECT id, kullanici_adi, metin FROM yorumlar WHERE ilan_id = %s ORDER BY id ASC", (ilan_id,))
-        yorumlar_db = cur.fetchall()
-        yorumlar_liste = [{"id": y[0], "yazar": y[1], "metin": y[2], "begeniSayisi": 0, "begenildi": False, "yanitlar": []} for y in yorumlar_db]
+            cur.execute("SELECT 1 FROM kaydedilenler WHERE ilan_id = %s AND kullanici_adi = %s", (ilan_id, kullanici_adi))
+            if cur.fetchone():
+                kaydedildi = True
+                
+        yorumlar_liste = yorumlari_getir(ilan_id, kullanici_adi, cur)
         
         sonuc.append({
             "id": ilan_id,
@@ -199,6 +258,7 @@ async def tum_ilanlari_getir(kullanici_adi: str = ""):
             "aciklama": i[5],
             "begeni": begeni_sayisi,
             "begenildi": begenildi,
+            "kaydedildi": kaydedildi, # YENİ
             "aktif": True,
             "yorumlar": yorumlar_liste
         })
@@ -207,7 +267,6 @@ async def tum_ilanlari_getir(kullanici_adi: str = ""):
     conn.close()
     return sonuc
 
-# YENİ EKLENDİ: Tek Bir İlanın Tüm Detaylarını Getirme Modeli (Profil Modalı İçin)
 @app.get("/ilan-detay/{ilan_id}")
 async def ilan_detay_getir(ilan_id: int, kullanici_adi: str = ""):
     conn = get_db_connection()
@@ -225,14 +284,18 @@ async def ilan_detay_getir(ilan_id: int, kullanici_adi: str = ""):
     begeni_sayisi = cur.fetchone()[0]
     
     begenildi = False
+    kaydedildi = False # YENİ
+    
     if kullanici_adi:
         cur.execute("SELECT 1 FROM begeniler WHERE ilan_id = %s AND kullanici_adi = %s", (ilan_id, kullanici_adi))
         if cur.fetchone():
             begenildi = True
             
-    cur.execute("SELECT id, kullanici_adi, metin FROM yorumlar WHERE ilan_id = %s ORDER BY id ASC", (ilan_id,))
-    yorumlar_db = cur.fetchall()
-    yorumlar_liste = [{"id": y[0], "yazar": y[1], "metin": y[2], "begeniSayisi": 0, "begenildi": False, "yanitlar": []} for y in yorumlar_db]
+        cur.execute("SELECT 1 FROM kaydedilenler WHERE ilan_id = %s AND kullanici_adi = %s", (ilan_id, kullanici_adi))
+        if cur.fetchone():
+            kaydedildi = True
+            
+    yorumlar_liste = yorumlari_getir(ilan_id, kullanici_adi, cur)
     
     sonuc = {
         "id": i[0],
@@ -244,6 +307,7 @@ async def ilan_detay_getir(ilan_id: int, kullanici_adi: str = ""):
         "aktif": i[6] == 'yayinda',
         "begeni": begeni_sayisi,
         "begenildi": begenildi,
+        "kaydedildi": kaydedildi, # YENİ
         "yorumlar": yorumlar_liste
     }
     cur.close()
@@ -254,34 +318,60 @@ async def ilan_detay_getir(ilan_id: int, kullanici_adi: str = ""):
 async def begeni_islem(veri: BegeniIslem):
     conn = get_db_connection()
     cur = conn.cursor()
-    
     cur.execute("SELECT 1 FROM begeniler WHERE ilan_id = %s AND kullanici_adi = %s", (veri.ilan_id, veri.kullanici_adi))
-    var_mi = cur.fetchone()
-    
-    if var_mi:
+    if cur.fetchone():
         cur.execute("DELETE FROM begeniler WHERE ilan_id = %s AND kullanici_adi = %s", (veri.ilan_id, veri.kullanici_adi))
-        durum = "kaldirildi"
     else:
         cur.execute("INSERT INTO begeniler (ilan_id, kullanici_adi) VALUES (%s, %s)", (veri.ilan_id, veri.kullanici_adi))
-        durum = "eklendi"
-        
     conn.commit()
     cur.close()
     conn.close()
-    return {"mesaj": "Sistem-Bilgi: Beğeni işlemi başarılı", "durum": durum}
+    return {"mesaj": "Sistem-Bilgi: İşlem başarılı"}
+
+# YENİ EKLENDİ: İlan Kaydetme İşlemi
+@app.post("/kaydet-yap")
+async def kaydet_islem(veri: BegeniIslem):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM kaydedilenler WHERE ilan_id = %s AND kullanici_adi = %s", (veri.ilan_id, veri.kullanici_adi))
+    if cur.fetchone():
+        cur.execute("DELETE FROM kaydedilenler WHERE ilan_id = %s AND kullanici_adi = %s", (veri.ilan_id, veri.kullanici_adi))
+    else:
+        cur.execute("INSERT INTO kaydedilenler (ilan_id, kullanici_adi) VALUES (%s, %s)", (veri.ilan_id, veri.kullanici_adi))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"mesaj": "Sistem-Bilgi: Kaydetme işlemi başarılı"}
+
+@app.post("/yorum-begeni-yap")
+async def yorum_begeni_islem(veri: YorumBegeniIslem):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM yorum_begeniler WHERE yorum_id = %s AND kullanici_adi = %s", (veri.yorum_id, veri.kullanici_adi))
+    if cur.fetchone():
+        cur.execute("DELETE FROM yorum_begeniler WHERE yorum_id = %s AND kullanici_adi = %s", (veri.yorum_id, veri.kullanici_adi))
+    else:
+        cur.execute("INSERT INTO yorum_begeniler (yorum_id, kullanici_adi) VALUES (%s, %s)", (veri.yorum_id, veri.kullanici_adi))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"mesaj": "Sistem-Bilgi: Yorum beğeni işlemi başarılı"}
 
 @app.post("/yorum-yap")
 async def yorum_yap(veri: YorumKayit):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("INSERT INTO yorumlar (ilan_id, kullanici_adi, metin) VALUES (%s, %s, %s)", (veri.ilan_id, veri.kullanici_adi, veri.metin))
+    cur.execute(
+        "INSERT INTO yorumlar (ilan_id, kullanici_adi, metin, parent_id) VALUES (%s, %s, %s, %s)", 
+        (veri.ilan_id, veri.kullanici_adi, veri.metin, veri.parent_id)
+    )
     conn.commit()
     cur.close()
     conn.close()
     return {"mesaj": "Sistem-Bilgi: Yorum başarıyla kaydedildi"}
 
 # ==========================================
-# PROFİL: İLANLARIM İŞLEMLERİ
+# PROFİL İŞLEMLERİ
 # ==========================================
 @app.get("/profil/ilanlar/{kullanici_adi}")
 async def profil_ilanlar(kullanici_adi: str):
@@ -310,16 +400,12 @@ async def ilan_durum(ilan_id: int):
     cur.execute("SELECT durum FROM ilanlar WHERE id = %s", (ilan_id,))
     mevcut_durum = cur.fetchone()[0]
     yeni_durum = 'kaldirildi' if mevcut_durum == 'yayinda' else 'yayinda'
-    
     cur.execute("UPDATE ilanlar SET durum = %s WHERE id = %s", (yeni_durum, ilan_id))
     conn.commit()
     cur.close()
     conn.close()
     return {"yeni_durum": yeni_durum}
 
-# ==========================================
-# PROFİL: BEĞENDİKLERİM İŞLEMLERİ
-# ==========================================
 @app.get("/profil/begendiklerim/{kullanici_adi}")
 async def profil_begendiklerim(kullanici_adi: str):
     conn = get_db_connection()
@@ -345,14 +431,37 @@ async def begeni_kaldir(ilan_id: int, kullanici_adi: str):
     conn.close()
     return {"mesaj": "Sistem-Mesaji: Beğeni kaldırıldı."}
 
-# ==========================================
-# PROFİL: YORUMLARIM İŞLEMLERİ
-# ==========================================
+# YENİ EKLENDİ: Profil Kaydedilenleri Çekme
+@app.get("/profil/kaydedilenler/{kullanici_adi}")
+async def profil_kaydedilenler(kullanici_adi: str):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT i.id, i.baslik, i.aciklama 
+        FROM ilanlar i 
+        JOIN kaydedilenler k ON i.id = k.ilan_id 
+        WHERE k.kullanici_adi = %s
+    ''', (kullanici_adi,))
+    ilanlar = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [{"id": i[0], "baslik": i[1], "aciklama": i[2]} for i in ilanlar]
+
+# YENİ EKLENDİ: Profil Kaydedilenlerden Çıkarma
+@app.delete("/kaydet-kaldir/{ilan_id}/{kullanici_adi}")
+async def kaydet_kaldir(ilan_id: int, kullanici_adi: str):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM kaydedilenler WHERE ilan_id = %s AND kullanici_adi = %s", (ilan_id, kullanici_adi))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"mesaj": "Sistem-Mesaji: Kaydedilenlerden çıkarıldı."}
+
 @app.get("/profil/yorumlar/{kullanici_adi}")
 async def profil_yorumlar(kullanici_adi: str):
     conn = get_db_connection()
     cur = conn.cursor()
-    # YENİ EKLENDİ: Artık i.id (ilan_id) bilgisini de döndürüyor ki modalı açabilelim
     cur.execute('''
         SELECT y.id, i.baslik, y.metin, i.id 
         FROM yorumlar y 
@@ -364,9 +473,6 @@ async def profil_yorumlar(kullanici_adi: str):
     conn.close()
     return [{"id": y[0], "ilan_baslik": y[1], "metin": y[2], "ilan_id": y[3]} for y in yorumlar]
 
-# ==========================================
-# HESAP AYARLARI İŞLEMLERİ
-# ==========================================
 @app.put("/hesap-isim-guncelle")
 async def isim_guncelle(veri: KullaniciGuncelle):
     try:
@@ -386,12 +492,10 @@ async def sifre_degistir(veri: SifreGuncelle):
     cur = conn.cursor()
     cur.execute("SELECT sifre FROM kullanicilar WHERE kullanici_adi = %s", (veri.kullanici_adi,))
     gercek_sifre = cur.fetchone()
-    
     if not gercek_sifre or gercek_sifre[0] != veri.eski_sifre:
         cur.close()
         conn.close()
         raise HTTPException(status_code=400, detail="Mevcut şifreniz yanlış!")
-        
     cur.execute("UPDATE kullanicilar SET sifre = %s WHERE kullanici_adi = %s", (veri.yeni_sifre, veri.kullanici_adi))
     conn.commit()
     cur.close()

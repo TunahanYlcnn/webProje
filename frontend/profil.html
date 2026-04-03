@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="anaSayfa.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .profil-kapsayici { max-width: 1000px; margin: 80px auto 20px; padding: 20px; }
+        .profil-kapsayici { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .profil-ust-menu { display: flex; justify-content: space-between; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto;}
         .profil-sekme-btn { flex: 1; padding: 12px; border: none; background: transparent; cursor: pointer; font-weight: bold; color: #7f8c8d; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; }
         .profil-sekme-btn:hover { color: #3498db; }
@@ -28,57 +28,75 @@
 </head>
 <body>
 
-    <nav class="ust-menu">
-        <div class="logo" onclick="window.location.href='anaSayfa.html'" style="cursor:pointer">Uni<span>Share</span></div>
-        <div class="menu-ikonlar">
-            <button class="menu-btn" onclick="window.location.href='anaSayfa.html'" title="Ana Sayfa"><i class="fas fa-home"></i></button>
-            <button class="menu-btn aktif" title="Profilim"><i class="fas fa-user"></i></button>
-        </div>
-    </nav>
+    <div id="yan-menu" class="yan-menu"> 
+        <button id="menu-tetikleyici" class="menu-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="menu-icerik">
+            <div class="menu-logo">Uni<span>Share</span></div>
 
-    <div class="profil-kapsayici">
-        <div class="profil-ust-menu">
-            <button class="profil-sekme-btn aktif" onclick="sekmeAc('katman-ilanlarim')"><i class="fas fa-bullhorn"></i> İlanlarım</button>
-            <button class="profil-sekme-btn" onclick="sekmeAc('katman-begendiklerim')"><i class="fas fa-heart"></i> Beğendiklerim</button>
-            <button class="profil-sekme-btn" onclick="sekmeAc('katman-yorumlarim')"><i class="fas fa-comment"></i> Yorumlarım</button>
-            <button class="profil-sekme-btn" onclick="sekmeAc('katman-hesabim')"><i class="fas fa-cog"></i> Hesabım</button>
-        </div>
-
-        <div id="katman-ilanlarim" class="profil-katman aktif">
-            <h2 style="margin-bottom: 20px; color: #2c3e50;">Kendi Paylaşımların</h2>
-            <div id="profil-ilanlar-listesi" class="ilanlar-grid"></div>
-        </div>
-
-        <div id="katman-begendiklerim" class="profil-katman">
-            <h2 style="margin-bottom: 20px; color: #2c3e50;">Beğendiğin İlanlar</h2>
-            <div id="profil-begendiklerim-listesi" class="ilanlar-grid"></div>
-        </div>
-
-        <div id="katman-yorumlarim" class="profil-katman">
-            <h2 style="margin-bottom: 20px; color: #2c3e50;">Yaptığın Yorumlar</h2>
-            <div id="profil-yorumlar-listesi" class="ilanlar-grid"></div>
-        </div>
-
-        <div id="katman-hesabim" class="profil-katman">
-            <div class="hesap-karti">
-                <h3><i class="fas fa-user-edit"></i> Kullanıcı Adı Değiştir</h3>
-                <input type="text" id="yeni-kullanici-adi" class="hesap-girdi" placeholder="Yeni Kullanıcı Adı">
-                <button class="btn-guncelle" onclick="kullaniciAdiGuncelle()">Kaydet</button>
+            <div class="menu-oge" onclick="window.location.href='anaSayfa.html'" style="cursor: pointer;">
+                <i class="fas fa-home"></i>
+                <span class="metin">Ana Sayfa</span>
             </div>
-            <div class="hesap-karti">
-                <h3><i class="fas fa-key"></i> Şifre Değiştir</h3>
-                <input type="password" id="mevcut-sifre" class="hesap-girdi" placeholder="Mevcut Şifreniz">
-                <input type="password" id="yeni-sifre" class="hesap-girdi" placeholder="Yeni Şifre">
-                <button class="btn-guncelle" onclick="sifreGuncelle()">Şifreyi Güncelle</button>
+            <div class="menu-oge aktif-sayfa" onclick="window.location.href='profil.html'" style="cursor: pointer;">
+                <i class="fas fa-user-circle"></i>
+                <span class="metin">Profil</span>
             </div>
-            <div class="hesap-karti" style="border: 1px solid #ffcccc; background: #fff5f5;">
-                <h3 style="color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i> Tehlikeli Bölge</h3>
-                <p style="margin-bottom: 15px; color: #7f8c8d;">Hesabını silersen paylaştığın ilanlar, yorumlar ve beğenilerin kalıcı olarak silinir.</p>
-                <button class="btn-tehlike" onclick="hesapSil()">Hesabımı Kalıcı Olarak Sil</button>
             </div>
-            <button class="btn-cikis" onclick="cikisYap()"><i class="fas fa-sign-out-alt"></i> Sistemden Çıkış Yap</button>
-        </div>
     </div>
+
+    <main id="ana-icerik">
+        <div class="profil-kapsayici">
+            <div class="profil-ust-menu">
+                <button class="profil-sekme-btn aktif" onclick="sekmeAc('katman-ilanlarim')"><i class="fas fa-bullhorn"></i> İlanlarım</button>
+                <button class="profil-sekme-btn" onclick="sekmeAc('katman-begendiklerim')"><i class="fas fa-heart"></i> Beğendiklerim</button>
+                <button class="profil-sekme-btn" onclick="sekmeAc('katman-yorumlarim')"><i class="fas fa-comment"></i> Yorumlarım</button>
+                <button class="profil-sekme-btn" onclick="sekmeAc('katman-kaydedilenler')"><i class="fas fa-bookmark"></i> Kaydedilenler</button>
+                <button class="profil-sekme-btn" onclick="sekmeAc('katman-hesabim')"><i class="fas fa-cog"></i> Hesabım</button>
+            </div>
+
+            <div id="katman-ilanlarim" class="profil-katman aktif">
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Kendi Paylaşımların</h2>
+                <div id="profil-ilanlar-listesi" class="ilanlar-grid"></div>
+            </div>
+
+            <div id="katman-begendiklerim" class="profil-katman">
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Beğendiğin İlanlar</h2>
+                <div id="profil-begendiklerim-listesi" class="ilanlar-grid"></div>
+            </div>
+
+            <div id="katman-yorumlarim" class="profil-katman">
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Yaptığın Yorumlar</h2>
+                <div id="profil-yorumlar-listesi" class="ilanlar-grid"></div>
+            </div>
+
+            <div id="katman-kaydedilenler" class="profil-katman">
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Kaydettiğin İlanlar</h2>
+                <div id="profil-kaydedilenler-listesi" class="ilanlar-grid"></div>
+            </div>
+
+            <div id="katman-hesabim" class="profil-katman">
+                <div class="hesap-karti">
+                    <h3><i class="fas fa-user-edit"></i> Kullanıcı Adı Değiştir</h3>
+                    <input type="text" id="yeni-kullanici-adi" class="hesap-girdi" placeholder="Yeni Kullanıcı Adı">
+                    <button class="btn-guncelle" onclick="kullaniciAdiGuncelle()">Kaydet</button>
+                </div>
+                <div class="hesap-karti">
+                    <h3><i class="fas fa-key"></i> Şifre Değiştir</h3>
+                    <input type="password" id="mevcut-sifre" class="hesap-girdi" placeholder="Mevcut Şifreniz">
+                    <input type="password" id="yeni-sifre" class="hesap-girdi" placeholder="Yeni Şifre">
+                    <button class="btn-guncelle" onclick="sifreGuncelle()">Şifreyi Güncelle</button>
+                </div>
+                <div class="hesap-karti" style="border: 1px solid #ffcccc; background: #fff5f5;">
+                    <h3 style="color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i> Tehlikeli Bölge</h3>
+                    <p style="margin-bottom: 15px; color: #7f8c8d;">Hesabını silersen paylaştığın ilanlar, yorumlar ve beğenilerin kalıcı olarak silinir.</p>
+                    <button class="btn-tehlike" onclick="hesapSil()">Hesabımı Kalıcı Olarak Sil</button>
+                </div>
+                <button class="btn-cikis" onclick="cikisYap()"><i class="fas fa-sign-out-alt"></i> Sistemden Çıkış Yap</button>
+            </div>
+        </div>
+    </main>
 
     <div id="ilan-detay-modal" class="modal">
         <div class="modal-icerik detay-modali">
@@ -104,6 +122,9 @@
                             <span id="detay-begeni-sayisi">0</span> Beğeni
                         </span>
                         <span><i class="fas fa-comment"></i> <span id="detay-yorum-sayisi">0</span> Yorum</span>
+                        <span class="etkilesim-butonlar" style="margin-left:auto; cursor:pointer;" onclick="kaydetYap(event)">
+                            <i class="far fa-bookmark" id="modal-kaydet" style="font-size:1.2rem; color:#34495e;"></i>
+                        </span>
                     </div>
                     <div class="detay-yorum-yazma-alani">
                         <div class="yorum-input-grubu">
@@ -116,6 +137,9 @@
         </div>
     </div>
 
+    <script>
+        document.getElementById('menu-tetikleyici').onclick = () => document.getElementById('yan-menu').classList.toggle('acik');
+    </script>
     <script src="profil.js"></script>
 </body>
 </html>

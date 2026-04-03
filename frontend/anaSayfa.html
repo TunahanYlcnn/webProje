@@ -14,6 +14,12 @@
             <i class="fas fa-bars"></i>
         </button>
         <div class="menu-icerik">
+            <div class="menu-logo">Uni<span>Share</span></div>
+
+            <div class="menu-oge aktif-sayfa" onclick="window.location.href='anaSayfa.html'" style="cursor: pointer;">
+                <i class="fas fa-home"></i>
+                <span class="metin">Ana Sayfa</span>
+            </div>
             <div class="menu-oge" onclick="window.location.href='profil.html'" style="cursor: pointer;">
                 <i class="fas fa-user-circle"></i>
                 <span class="metin">Profil</span>
@@ -67,6 +73,9 @@
                             <span id="detay-begeni-sayisi">0</span> Beğeni
                         </span>
                         <span><i class="fas fa-comment"></i> <span id="detay-yorum-sayisi">0</span> Yorum</span>
+                        <span class="etkilesim-butonlar" style="margin-left:auto; cursor:pointer;" onclick="kaydetYap(event)">
+                            <i class="far fa-bookmark" id="modal-kaydet" style="font-size:1.2rem; color:#34495e;"></i>
+                        </span>
                     </div>
                     <div class="detay-yorum-yazma-alani">
                         <div class="yorum-input-grubu">
@@ -80,11 +89,6 @@
     </div>
 
     <main id="ana-icerik">
-        <header>
-            <h1>Uni<span>Share</span></h1>
-            <p>Kampüs içi yardımlaşma platformu</p>
-        </header>
-
         <div class="kategori-filtre-kapsayici">
             <button class="filtre-btn aktif" data-kategori="Hepsi">Hepsi</button>
             <button class="filtre-btn" data-kategori="Eşya">Eşya</button>

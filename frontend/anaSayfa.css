@@ -27,7 +27,7 @@ body.modal-acik {
 }
 
 /* =========================================
-   2. YAN MENÜ (SIDEBAR)
+   2. YAN MENÜ (SIDEBAR) & LOGO
    ========================================= */
 .yan-menu { 
     width: 70px; 
@@ -43,18 +43,39 @@ body.modal-acik {
 }
 .yan-menu.acik { width: 250px; }
 .menu-btn { width: 100%; padding: 20px; background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-.menu-oge { padding: 15px 25px; display: flex; align-items: center; cursor: pointer; transition: background 0.3s; white-space: nowrap; }
+
+/* YENİ EKLENDİ: Menü İçi Logo */
+.menu-logo {
+    display: none; /* Sadece menü açıkken görünecek */
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0 25px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 10px;
+    white-space: nowrap;
+}
+.menu-logo span { color: #3498db; }
+.yan-menu.acik .menu-logo { display: block; }
+
+.menu-oge { padding: 15px 25px; display: flex; align-items: center; cursor: pointer; transition: background 0.3s; white-space: nowrap; border-left: 4px solid transparent;}
 .menu-oge:hover { background-color: #34495e; }
 .menu-oge i { font-size: 20px; min-width: 30px; }
 .menu-oge .metin { margin-left: 20px; opacity: 0; transition: opacity 0.3s; }
 .yan-menu.acik .metin { opacity: 1; }
 
+/* YENİ EKLENDİ: Aktif Sayfa İşareti */
+.menu-oge.aktif-sayfa {
+    background-color: rgba(52, 152, 219, 0.1);
+    border-left: 4px solid #3498db;
+}
+.menu-oge.aktif-sayfa i { color: #3498db; }
+
 /* =========================================
    3. ANA İÇERİK VE FİLTRELEME
    ========================================= */
-#ana-icerik { margin-left: 70px; padding: 40px; transition: margin-left 0.4s; }
+/* DÜZELTİLDİ: Üstten boşluk bırakıldı (eski header'ın yerine) */
+#ana-icerik { margin-left: 70px; padding: 40px; padding-top: 20px; transition: margin-left 0.4s; }
 .yan-menu.acik + #ana-icerik { margin-left: 250px; }
-header h1 span { color: #3498db; }
 
 .kategori-filtre-kapsayici { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 10px; flex-wrap: wrap; }
 .filtre-btn { padding: 8px 18px; border: none; border-radius: 20px; background-color: white; color: #555; cursor: pointer; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -95,7 +116,7 @@ header h1 span { color: #3498db; }
 .kart-alt-bilgi { display: flex; gap: 15px; margin-top: 15px; color: #b2bec3; font-size: 14px; }
 
 /* =========================================
-   5. MODALLAR VE İLAN FORMU (DÜZELTİLDİ)
+   5. MODALLAR VE İLAN FORMU
    ========================================= */
 .modal { 
     display: none; 
