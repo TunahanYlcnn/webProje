@@ -2,7 +2,7 @@
 const yanMenu = document.getElementById('yan-menu');
 const menuTetikleyici = document.getElementById('menu-tetikleyici');
 const ilanModal = document.getElementById('ilan-modal');
-const ilanBtn = document.querySelector('.menu-oge:nth-child(2)');
+const ilanBtn = document.getElementById('ilan-paylas-tetikleyici');
 const kapatBtn = document.querySelector('.kapat-btn');
 const ilanFormu = document.getElementById('ilan-formu');
 const ilanlarKutusu = document.getElementById('ilanlar-kutusu');
@@ -13,51 +13,60 @@ const detayYorumGonderBtn = document.getElementById('detay-yorum-gonder-btn');
 const filtreButonlari = document.querySelectorAll('.filtre-btn');
 const durumDegistirBtn = document.getElementById('durum-degistir-btn');
 
-// 2. Veriler
-let ilanlar = [
-    { 
-        id: 1, 
-        baslik: "Mühendislik Hesap Makinesi", 
-        kategori: "Eşya", 
-        fiyat: 500, 
-        aciklama: "Casio fx-991ES Plus, tertemiz.", 
-        begeni: 12, 
-        begenildi: false,
-        aktif: true,
-        yorumlar: [
-            { 
-                id: 101, 
-                yazar: "Öğrenci 1", 
-                metin: "Hala satılık mı?", 
-                begeniSayisi: 2, 
-                begenildi: false,
-                yanitlar: [{ yazar: "Satıcı", metin: "Evet, hala duruyor." }] 
-            }
-        ] 
-    },
-    { 
-        id: 2, 
-        baslik: "Algoritma Notları", 
-        kategori: "Ders Notu", 
-        fiyat: 50, 
-        aciklama: "Vize ve final için tam kapsamlı.", 
-        begeni: 45, 
-        begenildi: false,
-        aktif: true,
-        yorumlar: [
-            { id: 102, yazar: "Öğrenci 2", metin: "Harika notlar!", begeniSayisi: 5, begenildi: false, yanitlar: [] }
-        ] 
-    }
-];
-
+// 2. Veriler (Artık Boş, Veritabanından Dolacak)
+let ilanlar = [];
 let seciliIlan = null;
 let yanitlanacakYorumIndex = null; 
 let suAnkiKategori = "Hepsi";
 
+// Kullanıcının kim olduğunu öğrenelim
+const aktifKullanici = localStorage.getItem('unishare_kullanici');
+
+// ==========================================
+// YENİ EKLENEN: VERİTABANINDAN İLANLARI ÇEK
+// ==========================================
+async function ilanlariVeritabanindanGetir() {
+    try {
+        // Backend'e aktifKullanici'yi de gönderiyoruz ki bizim beğendiğimiz ilanları bilsin
+        const url = aktifKullanici ? `http://localhost:8000/ilanlar?kullanici_adi=${aktifKullanici}` : `http://localhost:8000/ilanlar`;
+        const cevap = await fetch(url);
+        
+        if (cevap.ok) {
+            ilanlar = await cevap.json();
+            ilanlariGoster();
+            
+            // Eğer detay modalı şu an açıksa, içindeki yorum/beğeni verilerini anında yenile
+            if (detayModal.style.display === "flex" && seciliIlan) {
+                const guncelIlan = ilanlar.find(i => i.id === seciliIlan.id);
+                if (guncelIlan) detaylariAc(guncelIlan);
+            }
+        }
+    } catch (hata) {
+        console.error("Sistem-Hatası: İlanlar çekilemedi", hata);
+    }
+}
+
+// Sayfa yüklendiğinde ilanları getir
+document.addEventListener('DOMContentLoaded', () => {
+    ilanlariVeritabanindanGetir();
+});
+
 // 3. Temel Navigasyon
 menuTetikleyici.onclick = () => yanMenu.classList.toggle('acik');
-ilanBtn.onclick = () => { ilanModal.style.display = "block"; document.body.style.overflow = "hidden"; document.body.classList.add('modal-acik');};
-kapatBtn.onclick = () => { ilanModal.style.display = "none"; document.body.style.overflow = "auto"; document.body.classList.add('modal-acik'); };
+
+if(ilanBtn) {
+    ilanBtn.onclick = () => { 
+        if(!aktifKullanici) {
+            alert("Sistem-Uyarisi: İlan paylaşmak için giriş yapmalısınız!");
+            return;
+        }
+        ilanModal.style.display = "block"; 
+        document.body.style.overflow = "hidden"; 
+        document.body.classList.add('modal-acik');
+    };
+}
+
+kapatBtn.onclick = () => { ilanModal.style.display = "none"; document.body.style.overflow = "auto"; document.body.classList.remove('modal-acik'); };
 detayKapatBtn.onclick = () => { detayModal.style.display = "none"; document.body.style.overflow = "auto"; };
 
 window.onclick = (e) => { 
@@ -73,6 +82,11 @@ window.onclick = (e) => {
 function ilanlariGoster() {
     ilanlarKutusu.innerHTML = "";
     
+    if (ilanlar.length === 0) {
+        ilanlarKutusu.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>Şu an yayında hiç ilan yok.</p>";
+        return;
+    }
+
     const gosterilecekIlanlar = suAnkiKategori === "Hepsi" 
         ? ilanlar 
         : ilanlar.filter(ilan => ilan.kategori === suAnkiKategori);
@@ -94,6 +108,7 @@ function ilanlariGoster() {
             <div class="durum-etiket ${durumSinifi}">${durumMetni}</div>
             <span class="kategori-etiket">${ilan.kategori}</span>
             <h3>${ilan.baslik}</h3>
+            <p style="font-size:0.8rem; color:#7f8c8d; margin-bottom:10px;">Paylaşan: ${ilan.yazar}</p>
             <div class="fiyat">${ilan.fiyat} ₺</div>
             <div class="kart-alt-bilgi">
                 <span class="begeni-tetikleyici" data-id="${ilan.id}">
@@ -106,12 +121,13 @@ function ilanlariGoster() {
         ilanlarKutusu.appendChild(kart);
     });
 
+    // Küçük kartlardaki kalp butonlarına tıklama
     document.querySelectorAll('.begeni-tetikleyici').forEach(btn => {
         btn.onclick = (e) => {
             e.stopPropagation();
+            if(!aktifKullanici) return alert("Sistem-Uyarisi: Beğenmek için giriş yapmalısınız!");
             const id = parseInt(btn.getAttribute('data-id'));
-            const ilan = ilanlar.find(i => i.id === id);
-            begeniIslemi(ilan, btn.querySelector('i'), btn.querySelector('.sayi'));
+            begeniIstegiGonder(id);
         };
     });
 }
@@ -135,6 +151,12 @@ function detaylariAc(ilan) {
     document.getElementById('detay-fiyat').innerText = ilan.fiyat + " ₺";
     document.getElementById('detay-begeni-sayisi').innerText = ilan.begeni;
     document.getElementById('detay-yorum-sayisi').innerText = ilan.yorumlar.length;
+
+    if(ilan.yazar === aktifKullanici) {
+        durumDegistirBtn.style.display = "block";
+    } else {
+        durumDegistirBtn.style.display = "none";
+    }
 
     const etiket = document.getElementById('detay-durum-etiket');
     etiket.innerText = ilan.aktif ? "Bu ilan şu an yayında" : "Bu ilan yayından kaldırıldı";
@@ -187,107 +209,136 @@ function detaylariAc(ilan) {
 }
 
 // 7. Durum Değiştirme
-durumDegistirBtn.onclick = () => {
-    if (seciliIlan) {
-        seciliIlan.aktif = !seciliIlan.aktif;
-        detaylariAc(seciliIlan); 
-        ilanlariGoster(); 
+durumDegistirBtn.onclick = async () => {
+    if (seciliIlan && seciliIlan.yazar === aktifKullanici) {
+        try {
+            const cevap = await fetch('http://localhost:8000/ilan-durum/' + seciliIlan.id, { method: 'PUT' });
+            if(cevap.ok) {
+                alert("Sistem-Mesaji: İlan durumu güncellendi.");
+                ilanlariVeritabanindanGetir(); // Veriyi baştan çek ve kapat
+                detayModal.style.display = "none";
+                document.body.style.overflow = "auto";
+            }
+        } catch (hata) {
+            alert("Bağlantı hatası.");
+        }
     }
 };
 
-// 8. Beğeni İşlemleri
-function begeniIslemi(ilan, kalpIkonu, sayiElementi) {
-    if (!ilan) return;
-    if (ilan.begenildi) {
-        ilan.begeni--;
-        ilan.begenildi = false;
-        kalpIkonu.className = 'far fa-heart';
-    } else {
-        ilan.begeni++;
-        ilan.begenildi = true;
-        kalpIkonu.className = 'fas fa-heart begenildi';
-    }
-    if (sayiElementi) sayiElementi.innerText = ilan.begeni;
-    if (detayModal.style.display === "flex") {
-        document.getElementById('detay-begeni-sayisi').innerText = ilan.begeni;
-        document.getElementById('modal-kalp').className = ilan.begenildi ? 'fas fa-heart begenildi' : 'far fa-heart';
+// 8. Beğeni İşlemleri (Gerçek Veritabanı Bağlantısı)
+async function begeniIstegiGonder(ilanId) {
+    if(!aktifKullanici) return alert("Sistem-Uyarisi: Beğenmek için giriş yapmalısınız.");
+    
+    try {
+        const cevap = await fetch('http://localhost:8000/begeni-yap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ilan_id: ilanId, kullanici_adi: aktifKullanici })
+        });
+
+        if (cevap.ok) {
+            // Arka planda veritabanı güncellendiği an, taze veriyi baştan çektiriyoruz
+            await ilanlariVeritabanindanGetir();
+        }
+    } catch (hata) {
+        alert("Bağlantı hatası!");
     }
 }
 
+// Modaldaki kalbe basınca çalışacak
 function begeniYap(e, element) {
     e.stopPropagation();
-    const sayiElementi = document.getElementById('detay-begeni-sayisi');
-    begeniIslemi(seciliIlan, element, sayiElementi);
-    ilanlariGoster();
+    begeniIstegiGonder(seciliIlan.id);
 }
 
+// Yorum beğenileri şimdilik UI seviyesinde bırakıldı (Geliştirilebilir)
 function yorumBegeniYap(index) {
     const yorum = seciliIlan.yorumlar[index];
-    if (yorum.begenildi) {
-        yorum.begeniSayisi--;
-        yorum.begenildi = false;
-    } else {
-        yorum.begeniSayisi++;
-        yorum.begenildi = true;
-    }
+    yorum.begenildi = !yorum.begenildi;
+    yorum.begeniSayisi += yorum.begenildi ? 1 : -1;
     detaylariAc(seciliIlan);
 }
 
-// 9. Yanıtla ve Yorum Gönder
+// 9. Yanıtla ve Yorum Gönder (Gerçek Veritabanı Bağlantısı)
 function yanitla(index, kullaniciAdi) {
     yanitlanacakYorumIndex = index; 
     detayYorumInput.value = `@${kullaniciAdi} `;
     detayYorumInput.focus();
 }
 
-function yorumGonder() {
+async function yorumGonder() {
+    if(!aktifKullanici) return alert("Sistem-Uyarisi: Yorum yapmak için giriş yapmalısınız.");
+    
     const metin = detayYorumInput.value.trim();
     if (metin === "" || !seciliIlan) return;
 
-    if (yanitlanacakYorumIndex !== null && metin.includes("@")) {
-        seciliIlan.yorumlar[yanitlanacakYorumIndex].yanitlar.push({
-            yazar: "Sen",
-            metin: metin
+    try {
+        const cevap = await fetch('http://localhost:8000/yorum-yap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ilan_id: seciliIlan.id,
+                kullanici_adi: aktifKullanici,
+                metin: metin
+            })
         });
-        yanitlanacakYorumIndex = null; 
-    } else {
-        seciliIlan.yorumlar.push({
-            id: Date.now(),
-            yazar: "Sen",
-            metin: metin,
-            begeniSayisi: 0,
-            begenildi: false,
-            yanitlar: []
-        });
-    }
 
-    detayYorumInput.value = "";
-    detaylariAc(seciliIlan);
-    ilanlariGoster();
+        if (cevap.ok) {
+            detayYorumInput.value = "";
+            yanitlanacakYorumIndex = null;
+            // Veritabanından en güncel yorumları çek
+            await ilanlariVeritabanindanGetir(); 
+        }
+    } catch (hata) {
+        alert("Sistem-Hatası: Yorum gönderilemedi.");
+    }
 }
 
 detayYorumInput.onkeypress = (e) => { if (e.key === 'Enter') yorumGonder(); };
 detayYorumGonderBtn.onclick = yorumGonder;
 
-// 10. İlan Paylaş (Düzeltildi)
-ilanFormu.onsubmit = (e) => {
+// ==========================================
+// 10. İLAN PAYLAŞ (VERİTABANINA GÖNDER)
+// ==========================================
+ilanFormu.onsubmit = async (e) => {
     e.preventDefault();
-    const yeni = {
-        id: Date.now(),
-        baslik: document.getElementById('ilan-baslik').value,
-        kategori: document.getElementById('ilan-kategori').value,
-        fiyat: document.getElementById('ilan-fiyat').value,
-        aciklama: document.getElementById('ilan-aciklama').value,
-        begeni: 0, 
-        yorumlar: [], 
-        begenildi: false,
-        aktif: true 
-    };
-    ilanlar.unshift(yeni);
-    ilanlariGoster();
-    ilanFormu.reset();
-    ilanModal.style.display = "none";
-    document.body.style.overflow = "auto";
-};
+    
+    if(!aktifKullanici) {
+        alert("Sistem-Hatası: İlan paylaşabilmek için önce giriş yapmalısınız.");
+        return;
+    }
 
-ilanlariGoster();
+    const baslik = document.getElementById('ilan-baslik').value;
+    const kategori = document.getElementById('ilan-kategori').value;
+    const fiyat = parseFloat(document.getElementById('ilan-fiyat').value);
+    const aciklama = document.getElementById('ilan-aciklama').value;
+
+    try {
+        const cevap = await fetch('http://localhost:8000/ilan-paylas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                kullanici_adi: aktifKullanici,
+                baslik: baslik,
+                kategori: kategori,
+                fiyat: fiyat,
+                aciklama: aciklama
+            })
+        });
+
+        if (cevap.ok) {
+            alert("Sistem-Mesaji: İlan başarıyla paylaşıldı!");
+            ilanFormu.reset();
+            ilanModal.style.display = "none";
+            document.body.style.overflow = "auto";
+            
+            // Veritabanından güncel listeyi tekrar çek
+            ilanlariVeritabanindanGetir();
+        } else {
+            alert("Sistem-Hatası: İlan paylaşılamadı.");
+        }
+    } catch (hata) {
+        console.error("Sistem-Hatası:", hata);
+        alert("Bağlantı hatası yaşandı.");
+    }
+};

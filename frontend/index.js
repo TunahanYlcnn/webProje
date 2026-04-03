@@ -2,7 +2,6 @@
 
 /**
  * 1. KATMAN DEĞİŞTİRME FONKSİYONU
- * Bu fonksiyon tanımlanmadığı için hata alıyordun. 
  * Sayfa yenilenmeden ekranlar arası geçişi sağlar.
  */
 function katmanDegistir(katmanId) {
@@ -63,7 +62,6 @@ if (kayitFormu) {
                 alert(sonuc.mesaj || "Kayıt başarıyla tamamlandı!");
                 katmanDegistir('katman-giris'); // Başarılıysa giriş ekranına dön
             } else {
-                // Backend'den gelen (kullanıcı adı zaten var vb.) hatayı göster
                 alert("Hata: " + (sonuc.detail || "Kayıt yapılamadı."));
             }
         } catch (hata) {
@@ -97,6 +95,11 @@ if (girisFormu) {
             const sonuc = await cevap.json();
             
             if (cevap.ok) {
+                // --- KRİTİK EKLEME BURADA ---
+                // Profil sayfasının kullanıcıyı tanıması için ismi hafızaya alıyoruz
+                localStorage.setItem('unishare_kullanici', kullanici_adi);
+                // ----------------------------
+
                 alert("Hoş geldin " + kullanici_adi);
                 window.location.href = "anaSayfa.html"; // Ana sayfaya yönlendir
             } else {
